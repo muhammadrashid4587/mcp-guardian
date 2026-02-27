@@ -1,0 +1,71 @@
+# =============================================================================
+# mcp-guardian configuration
+# =============================================================================
+# Copy this file to guardian.yaml and customize for your environment.
+#
+# Rules are evaluated in order — the first matching rule wins.
+# If no rule matches, the call is ALLOWED by default.
+# =============================================================================
+
+rules:
+  # ── Block dangerous tools outright ──────────────────────────────────────────
+  - tool: "exec_command"
+    action: deny
+    reason: "Shell execution blocked by policy"
+
+  - tool: "run_shell"
+    action: deny
+    reason: "Shell execution blocked by policy"
+
+  # ── Allow file reads only from safe directories ─────────────────────────────
+  - tool: "read_file"
+    action: allow
+    conditions:
+      args_match:
+        path: "^/allowed/.*"
+
+  - tool: "read_file"
+    action: deny
+    reason: "File read outside allowed directory"
+
+  # ── Allow write only to /tmp ────────────────────────────────────────────────
+  - tool: "write_file"
+    action: allow
+    conditions:
+      args_match:
+        path: "^/tmp/.*"
+
+  - tool: "write_file"
+    action: deny
+    reason: "File write outside /tmp"
+
+  # ── Rate-limit all HTTP tools ───────────────────────────────────────────────
+  - tool: "http_*"
+    rate_limit:
+      max_calls: 30
+      window_seconds: 60
+
+  # ── Global rate limit as a safety net ───────────────────────────────────────
+  - tool: "*"
+    rate_limit:
+      max_calls: 100
+      window_seconds: 60
+
+# =============================================================================
+# Redaction — strip sensitive data from tool arguments before forwarding
+# =============================================================================
+redaction:
+  patterns:
+    - "(sk-[a-zA-Z0-9]{32,})"
+    - "(AKIA[0-9A-Z]{16})"
+    - "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+    - "(ghp_[a-zA-Z0-9]{36})"
+    - "(xox[bpoas]-[a-zA-Z0-9-]+)"
+
+# =============================================================================
+# Audit logging
+# =============================================================================
+audit:
+  file: "./guardian-audit.jsonl"
+  log_args: true
+  log_results: false

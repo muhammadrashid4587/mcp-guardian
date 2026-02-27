@@ -1,0 +1,27 @@
+node_modules/
+dist/
+*.js
+*.d.ts
+*.js.map
+*.d.ts.map
+!vitest.config.ts
+
+# Audit logs
+guardian-audit.jsonl
+
+# Config (may contain sensitive rules)
+guardian.yaml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.env.*
